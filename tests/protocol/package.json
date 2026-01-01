@@ -1,0 +1,41 @@
+{
+  "name": "@rootlessnet/protocol",
+  "version": "2.0.0",
+  "description": "RootlessNet Protocol - A rootless, ownerless substrate for human expression",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "bun run --filter '*' build",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "lint": "biome check .",
+    "lint:fix": "biome check . --write",
+    "format": "biome format . --write",
+    "typecheck": "tsc --noEmit",
+    "dev": "bun run --filter '@rootlessnet/sdk' dev",
+    "clean": "rm -rf packages/*/dist"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "@types/bun": "^1.1.0",
+    "typescript": "^5.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RootlessNet/protocol.git"
+  },
+  "author": "RootlessNet Community",
+  "license": "MIT",
+  "keywords": [
+    "decentralized",
+    "censorship-resistant",
+    "p2p",
+    "protocol",
+    "cryptography",
+    "e2e-encryption",
+    "identity"
+  ]
+}
