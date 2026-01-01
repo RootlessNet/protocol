@@ -2,135 +2,104 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 :root {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 10, 10, 20;
-  --background-end-rgb: 15, 23, 42;
+  /* "Deep Root" Palette */
+  --color-void: #050505;
+  --color-void-transparent: rgba(5, 5, 5, 0.8);
+  --color-surface: #0A0A0A;
+  --color-surface-hover: #121212;
+  
+  /* Toxic Lime / Acid Green */
+  --color-accent-primary: #D4FF00;
+  --color-accent-primary-dim: #9cc200;
+  
+  /* Bio-Luminescent Cyan */
+  --color-accent-secondary: #00F0FF;
+  
+  --color-text-main: #EEEEEE;
+  --color-text-muted: #888888;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-html,
 body {
-  max-width: 100vw;
+  background-color: var(--color-void);
+  font-family: var(--font-outfit), sans-serif;
   overflow-x: hidden;
-  scroll-behavior: smooth;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-    135deg,
-    rgb(var(--background-start-rgb)),
-    rgb(var(--background-end-rgb))
-  );
-  min-height: 100vh;
-  font-family: 'Inter', system-ui, sans-serif;
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-syne), sans-serif;
 }
 
-/* Custom scrollbar */
+/* 
+   Distinctive "Scanline" or "Mesh" texture 
+   CSS-only background pattern for depth
+*/
+.bg-grid-pattern {
+  background-size: 50px 50px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+}
+
+.glow-text {
+  text-shadow: 0 0 20px rgba(212, 255, 0, 0.3);
+}
+
+.glow-box {
+  box-shadow: 0 0 40px rgba(0, 240, 255, 0.1);
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-void);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
+  background: #333;
+  border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--color-accent-primary);
 }
 
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, #0ea5e9, #d946ef);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Utilities for distinct aesthetic */
+.border-toxic {
+  border: 1px solid rgba(212, 255, 0, 0.2);
 }
 
-/* Glass effect */
-.glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.text-toxic {
+  color: var(--color-accent-primary);
 }
 
-.glass-dark {
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.bg-toxic-10 {
+  background-color: rgba(212, 255, 0, 0.1);
 }
 
-/* Glow effects */
-.glow {
-  box-shadow: 0 0 30px rgba(14, 165, 233, 0.3);
+/* Glass panel */
+.glass-panel {
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
-.glow-hover:hover {
-  box-shadow: 0 0 40px rgba(14, 165, 233, 0.5);
-  transition: box-shadow 0.3s ease;
+/* Animations */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
 }
 
-/* Button styles */
-.btn-primary {
-  @apply px-6 py-3 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg font-semibold text-white transition-all duration-300;
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
 }
 
-.btn-primary:hover {
-  @apply from-primary-400 to-accent-400 shadow-lg;
-  transform: translateY(-2px);
-}
-
-.btn-secondary {
-  @apply px-6 py-3 border border-white/20 rounded-lg font-semibold text-white transition-all duration-300;
-}
-
-.btn-secondary:hover {
-  @apply bg-white/10 border-white/30;
-}
-
-/* Code blocks */
-.code-block {
-  @apply bg-black/50 rounded-lg p-4 font-mono text-sm overflow-x-auto;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Animation delay utilities */
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-400 { animation-delay: 400ms; }
-.delay-500 { animation-delay: 500ms; }
-
-/* Floating animation */
-@keyframes float {
+@keyframes float-slow {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-15px); }
 }
 
 .animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-/* Mesh gradient background */
-.mesh-gradient {
-  background: 
-    radial-gradient(at 40% 20%, rgba(14, 165, 233, 0.3) 0px, transparent 50%),
-    radial-gradient(at 80% 0%, rgba(217, 70, 239, 0.3) 0px, transparent 50%),
-    radial-gradient(at 0% 50%, rgba(14, 165, 233, 0.2) 0px, transparent 50%),
-    radial-gradient(at 80% 50%, rgba(217, 70, 239, 0.2) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(14, 165, 233, 0.2) 0px, transparent 50%),
-    radial-gradient(at 80% 100%, rgba(217, 70, 239, 0.15) 0px, transparent 50%);
+  animation: float-slow 6s ease-in-out infinite;
 }
