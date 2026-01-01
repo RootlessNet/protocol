@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-# protocol
-The main protocol for RootLess Network
-=======
 # RootlessNet
 
 <p align="center">
@@ -109,18 +105,13 @@ import { RootlessNet } from '@rootlessnet/sdk';
 const client = new RootlessNet();
 
 // Create identity
-const identity = await client.identity.create();
+const identity = await client.createIdentity();
 
 // Post content
-const post = await client.content.create({
-  type: 'text/plain',
-  payload: 'Hello, decentralized world!',
-});
+const post = await client.post('Hello, decentralized world!');
 
 // Send encrypted message
-await client.messaging.send(recipientDid, {
-  payload: 'Private message here',
-});
+await client.sendMessage(recipientDid, 'Private message here');
 ```
 
 ---
@@ -205,16 +196,13 @@ We welcome contributions! See [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for guid
 
 ```bash
 # Clone the repository
-git clone https://github.com/rootlessnet/protocol
+git clone https://github.com/RootlessNet/protocol
 
 # Install dependencies
 bun install
 
 # Run tests
 bun test
-
-# Start development
-bun run dev
 ```
 
 ---
@@ -232,4 +220,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <p align="center">
   Made with ❤️ by the RootlessNet community
 </p>
->>>>>>> source/main

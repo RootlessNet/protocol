@@ -5,21 +5,18 @@
   "type": "module",
   "private": true,
   "workspaces": [
-    "packages/*",
-    "apps/*"
+    "packages/*"
   ],
   "scripts": {
     "build": "bun run --filter '*' build",
     "build:packages": "bun run --filter '@rootlessnet/*' build",
-    "dev": "bun run --filter '@rootlessnet/web' dev",
-    "dev:docs": "bun run --filter '@rootlessnet/docs' dev",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "lint": "biome check .",
     "lint:fix": "biome check . --write",
     "format": "biome format . --write",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf packages/*/dist apps/*/dist apps/*/.next node_modules/.cache",
+    "clean": "rm -rf packages/*/dist node_modules/.cache",
     "prepare": "bun run build:packages"
   },
   "devDependencies": {

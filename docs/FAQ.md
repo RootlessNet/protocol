@@ -159,7 +159,7 @@ See CONTRIBUTING.md:
 - Feature ideas
 
 ### Where is the source code?
-GitHub: https://github.com/rootlessnet
+The protocol source code is available on GitHub.
 
 ---
 
@@ -194,6 +194,6 @@ You do, for yourself. Zones do, for their communities. No one does, globally.
 
 ---
 
-*More questions? Join the community discussion.*
+*More questions? Reach out to the contributors.*
 
 *Last Updated: December 2024*

@@ -34,9 +34,8 @@ We welcome contributions! This document outlines how to participate.
 #### Setup
 
 ```bash
-git clone https://github.com/rootlessnet/protocol
-cd rootlessnet
-bun install
+git clone <repository-url>
+cd protocol
 ```
 
 #### Workflow

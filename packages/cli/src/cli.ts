@@ -245,8 +245,6 @@ program
     console.log("  • X25519 key exchange");
     console.log("  • Double Ratchet messaging");
     console.log("  • Content-addressed storage");
-    console.log("\n" + chalk.bold("Links:"));
-    console.log("  • GitHub: https://github.com/RootlessNet/protocol");
   });
 
 // Parse and run
