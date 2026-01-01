@@ -653,7 +653,7 @@ function zeroize(buffer: Uint8Array): void {
 
 ### 11.1 Vulnerability Disclosure
 
-Contact: security@rootlessnet.org (PGP key available)
+Contact: aaryan.bansal.dev@gmail.com (PGP key available)
 
 **Responsible Disclosure Policy:**
 1. Report vulnerability privately

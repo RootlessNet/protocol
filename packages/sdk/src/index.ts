@@ -31,11 +31,14 @@ import {
 } from "@rootlessnet/messaging";
 
 import { parseDID, createDID, computeCID } from "@rootlessnet/crypto";
+import { createStorage, type Storage } from "@rootlessnet/storage";
+import { Node } from "@rootlessnet/network";
+import { ZoneManager } from "@rootlessnet/zone";
 
 /** SDK Configuration */
 export interface RootlessNetConfig {
   /** Storage directory for local data */
-  storage?: string;
+  storageDir?: string;
   /** Network to connect to */
   network?: "mainnet" | "testnet" | "local";
 }
@@ -60,6 +63,9 @@ export class RootlessNet {
   private config: RootlessNetConfig;
   private identity: Identity | null = null;
   private sessionManager: SessionManager | null = null;
+  private storage: Storage;
+  private networkNode: Node | null = null;
+  private zoneManager: ZoneManager | null = null;
   private eventHandlers: Map<EventType, Set<EventHandler>> = new Map();
   private contentStore: Map<string, ContentObject> = new Map();
 
@@ -68,6 +74,7 @@ export class RootlessNet {
       network: "mainnet",
       ...config,
     };
+    this.storage = createStorage({ baseDir: config.storageDir });
   }
 
   // ============ Identity Methods ============
@@ -78,6 +85,8 @@ export class RootlessNet {
   async createIdentity(options?: CreateIdentityOptions): Promise<Identity> {
     this.identity = await createIdentity(options);
     this.sessionManager = new SessionManager(this.identity);
+    this.networkNode = new Node(this.identity.did);
+    this.zoneManager = new ZoneManager(this.identity);
 
     this.emit("identity:created", this.identity);
 

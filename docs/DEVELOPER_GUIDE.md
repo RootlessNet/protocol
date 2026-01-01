@@ -377,9 +377,6 @@ logging:
 
 ---
 
-## 7. API Reference
-
-Full API documentation at: https://docs.rootlessnet.org/api
 
 ### 7.1 SDK Methods
 

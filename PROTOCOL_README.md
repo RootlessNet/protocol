@@ -176,7 +176,6 @@ MIT License - see [LICENSE](./LICENSE) for details.
 
 ## Links
 
-- **Website**: https://rootlessnet.org (coming soon)
 - **Documentation**: [docs/](./docs)
 - **GitHub**: https://github.com/RootlessNet/protocol
 - **Community**: (coming soon)

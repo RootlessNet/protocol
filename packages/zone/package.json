@@ -1,7 +1,7 @@
 {
-  "name": "@rootlessnet/sdk",
+  "name": "@rootlessnet/zone",
   "version": "2.0.0",
-  "description": "RootlessNet SDK - Complete SDK for building on RootlessNet protocol",
+  "description": "Zone and group management for RootlessNet protocol",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -13,15 +13,13 @@
   },
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target node",
-    "test": "bun test",
-    "typecheck": "tsc --noEmit",
-    "dev": "bun run --watch src/index.ts"
+    "test": "bun test"
   },
   "dependencies": {
     "@rootlessnet/crypto": "workspace:*",
     "@rootlessnet/identity": "workspace:*",
     "@rootlessnet/content": "workspace:*",
-    "@rootlessnet/messaging": "workspace:*"
+    "@rootlessnet/storage": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.6.0",

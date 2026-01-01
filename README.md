@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+# protocol
+The main protocol for RootLess Network
+=======
 # RootlessNet
 
 <p align="center">
@@ -170,7 +174,7 @@ See [SECURITY.md](./docs/SECURITY.md) for the complete threat model.
 
 ### Reporting Vulnerabilities
 
-Please report security issues to: security@rootlessnet.org
+Please report security issues to: aaryan.bansal.dev@gmail.com
 
 ---
 
@@ -215,15 +219,6 @@ bun run dev
 
 ---
 
-## Community
-
-- 💬 [Discord](https://discord.gg/rootlessnet)
-- 🐦 [Twitter](https://twitter.com/rootlessnet)
-- 📧 [Mailing List](https://lists.rootlessnet.org)
-- 📖 [Blog](https://blog.rootlessnet.org)
-
----
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -237,3 +232,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <p align="center">
   Made with ❤️ by the RootlessNet community
 </p>
+>>>>>>> source/main

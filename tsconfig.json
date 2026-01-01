@@ -11,10 +11,8 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "types": ["bun-types"],
-    "lib": ["ESNext"]
-  },
-  "exclude": ["node_modules", "dist"]
+    "composite": true,
+    "incremental": true,
+    "lib": ["ESNext", "DOM", "DOM.Iterable"]
+  }
 }
