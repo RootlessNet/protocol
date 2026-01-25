@@ -1,0 +1,41 @@
+[package]
+name = "rootless_core"
+version = "0.1.0"
+edition = "2021"
+description = "RootlessNet TUI Protocol Core Library - Decentralized Tor Blockchain"
+license = "MIT"
+
+[lib]
+name = "rootless_core"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# Cryptography
+rand = "0.8"
+sha2 = "0.10"
+ed25519-dalek = { version = "2.1", features = ["rand_core"] }
+x25519-dalek = { version = "2.0", features = ["static_secrets"] }
+chacha20poly1305 = "0.10"
+blake3 = "1.5"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Tor networking
+arti-client = { version = "0.14", optional = true }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+
+# Python bindings
+pyo3 = { version = "0.20", features = ["extension-module"] }
+
+# Blockchain
+chrono = { version = "0.4", features = ["serde"] }
+hex = "0.4"
+
+[features]
+default = []
+tor = ["arti-client"]
+
+[dev-dependencies]
+tokio-test = "0.4"
