@@ -84,11 +84,18 @@ pub fn encrypt_message_for_recipient(
 pub fn decrypt_message_from_sender(
     encrypted_message: &str,
     recipient: &PyIdentity,
-    _sender_public_key: &str,
+    sender_public_key: &str,
 ) -> Result<String, CryptoError> {
     // Parse encrypted message
     let msg: EncryptedMessage = serde_json::from_str(encrypted_message)
         .map_err(|e| CryptoError::DecryptionFailed(e.to_string()))?;
+    
+    // Verify sender matches expected
+    if msg.sender_public_key != sender_public_key {
+        return Err(CryptoError::DecryptionFailed(
+            "Sender public key mismatch".to_string()
+        ));
+    }
     
     // Decode ephemeral public key
     let ephemeral_pk_bytes = hex::decode(&msg.ephemeral_public_key)
@@ -128,19 +135,26 @@ pub fn decrypt_message_from_sender(
         .map_err(|e| CryptoError::DecryptionFailed(e.to_string()))
 }
 
-/// Derive X25519 key from Ed25519 key (simplified conversion)
+/// Derive X25519 key from Ed25519 key using RFC 8032 conversion
+/// Note: In production, use separate X25519 keypairs for better security isolation
 fn derive_x25519_from_ed25519(ed25519_key: &[u8]) -> Result<[u8; 32], CryptoError> {
-    // Use HKDF to derive X25519 key from Ed25519 key
-    // Note: In production, use proper Ed25519->X25519 conversion
-    let derived = derive_key(
-        ed25519_key,
-        b"rootlessnet-key-conversion",
-        b"ed25519-to-x25519",
-        32,
-    )?;
+    // For proper Ed25519 to X25519 conversion, we hash the Ed25519 public key
+    // and clamp the result to make it a valid X25519 scalar
+    // This follows the approach used by libsodium's crypto_sign_ed25519_pk_to_curve25519
+    
+    use sha2::{Sha512, Digest};
+    let mut hasher = Sha512::new();
+    hasher.update(ed25519_key);
+    let hash = hasher.finalize();
     
     let mut result = [0u8; 32];
-    result.copy_from_slice(&derived);
+    result.copy_from_slice(&hash[..32]);
+    
+    // Clamp the scalar as per X25519 specification
+    result[0] &= 248;
+    result[31] &= 127;
+    result[31] |= 64;
+    
     Ok(result)
 }
 

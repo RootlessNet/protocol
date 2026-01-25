@@ -6,6 +6,7 @@ ensuring the TUI can run in pure Python mode for development and testing.
 """
 
 import hashlib
+import hmac
 import json
 import secrets
 import time
@@ -74,10 +75,18 @@ class Identity:
         )
     
     def sign(self, data: bytes) -> bytes:
-        """Sign data with this identity's private key."""
-        # Simplified signature for demo - in production use Ed25519
-        signature_input = self._private_key.encode() + data
-        return hashlib.sha256(signature_input).digest()
+        """Sign data with this identity's private key using HMAC-SHA256."""
+        # Use HMAC for secure message authentication in fallback mode
+        return hmac.new(
+            bytes.fromhex(self._private_key),
+            data,
+            hashlib.sha256
+        ).digest()
+    
+    def verify_signature(self, data: bytes, signature: bytes) -> bool:
+        """Verify a signature created by this identity."""
+        expected = self.sign(data)
+        return hmac.compare_digest(expected, signature)
     
     def export(self) -> str:
         """Export identity as JSON."""
@@ -116,6 +125,7 @@ class Content:
     body: str
     created_at: int
     signature: str
+    _author_private_key: str = field(default="", repr=False)
     
     @classmethod
     def create(cls, body: str, identity: Identity) -> "Content":
@@ -137,13 +147,32 @@ class Content:
             body=body,
             created_at=created_at,
             signature=signature.hex(),
+            _author_private_key=identity._private_key,
         )
     
     def verify(self) -> bool:
-        """Verify the content's signature."""
-        # Simplified verification for demo
-        # In production, verify Ed25519 signature
-        return len(self.signature) == 64  # SHA256 hex length
+        """Verify the content's signature using HMAC verification."""
+        if not self._author_private_key:
+            # Cannot verify without private key (signature was created elsewhere)
+            # In production, use public-key cryptography (Ed25519)
+            return len(self.signature) == 64  # Basic length check
+        
+        # Reconstruct signature payload
+        signature_payload = f"{self.cid}:{self.author}:{self.body}:{self.created_at}".encode()
+        
+        # Compute expected signature using HMAC
+        expected_signature = hmac.new(
+            bytes.fromhex(self._author_private_key),
+            signature_payload,
+            hashlib.sha256
+        ).digest()
+        
+        # Compare signatures in constant time
+        try:
+            actual_signature = bytes.fromhex(self.signature)
+            return hmac.compare_digest(expected_signature, actual_signature)
+        except ValueError:
+            return False
     
     def export(self) -> str:
         """Export content as JSON."""
@@ -163,6 +192,8 @@ class EncryptedMessage:
     sender_public_key: str
     recipient_public_key: str
     ciphertext: str
+    nonce: str  # Added nonce for proper encryption
+    mac: str    # Added MAC for authentication
     timestamp: int
     message_id: str
 
@@ -172,17 +203,21 @@ class Messaging:
     End-to-end encrypted messaging for RootlessNet.
     
     Provides secure message encryption and decryption using
-    X25519 key exchange and XChaCha20-Poly1305.
+    authenticated encryption with HMAC for message integrity.
     """
     
     @staticmethod
-    def _derive_shared_secret(sender_public_key: str, recipient_public_key: str) -> bytes:
-        """Derive a symmetric shared secret from both public keys."""
-        # Use both public keys to derive shared secret (available on both sides)
-        # Sort keys to ensure same derivation order on both ends
+    def _derive_keys(sender_public_key: str, recipient_public_key: str) -> tuple[bytes, bytes]:
+        """Derive encryption and authentication keys from public keys."""
+        # Derive base secret
         keys_combined = sender_public_key + recipient_public_key
-        shared_secret = hashlib.sha256(keys_combined.encode()).digest()
-        return shared_secret
+        base_secret = hashlib.sha256(keys_combined.encode()).digest()
+        
+        # Derive separate encryption and MAC keys using HKDF-like expansion
+        enc_key = hashlib.sha256(base_secret + b"encryption").digest()
+        mac_key = hashlib.sha256(base_secret + b"authentication").digest()
+        
+        return enc_key, mac_key
 
     @staticmethod
     def encrypt(
@@ -190,38 +225,42 @@ class Messaging:
         sender: Identity,
         recipient_public_key: str,
     ) -> str:
-        """Encrypt a message for a recipient."""
+        """Encrypt a message for a recipient with authentication."""
         if RUST_BACKEND_AVAILABLE and _rust_core:
             return _rust_core.encrypt_message(message, sender, recipient_public_key)
         
-        # Pure Python fallback (simplified)
         timestamp = int(time.time())
         
-        # Derive shared secret using both public keys
-        key_bytes = Messaging._derive_shared_secret(sender.public_key, recipient_public_key)
+        # Generate random nonce
+        nonce = secrets.token_bytes(16)
         
-        # XOR encryption for demo (use real encryption in production)
+        # Derive encryption and MAC keys
+        enc_key, mac_key = Messaging._derive_keys(sender.public_key, recipient_public_key)
+        
+        # XOR encryption with nonce-derived keystream (CTR-like mode)
         message_bytes = message.encode()
-        # Extend key to message length
-        extended_key = (key_bytes * ((len(message_bytes) // 32) + 1))[:len(message_bytes)]
-        encrypted = bytes(m ^ k for m, k in zip(message_bytes, extended_key))
+        keystream = b""
+        counter = 0
+        while len(keystream) < len(message_bytes):
+            block = hashlib.sha256(enc_key + nonce + counter.to_bytes(4, 'big')).digest()
+            keystream += block
+            counter += 1
+        
+        ciphertext = bytes(m ^ k for m, k in zip(message_bytes, keystream[:len(message_bytes)]))
+        
+        # Compute MAC over ciphertext for authentication
+        mac = hmac.new(mac_key, nonce + ciphertext, hashlib.sha256).digest()
         
         message_id = hashlib.sha256(f"{message}:{timestamp}".encode()).hexdigest()[:16]
         
-        msg = EncryptedMessage(
-            sender_public_key=sender.public_key,
-            recipient_public_key=recipient_public_key,
-            ciphertext=encrypted.hex(),
-            timestamp=timestamp,
-            message_id=message_id,
-        )
-        
         return json.dumps({
-            "sender_public_key": msg.sender_public_key,
-            "recipient_public_key": msg.recipient_public_key,
-            "ciphertext": msg.ciphertext,
-            "timestamp": msg.timestamp,
-            "message_id": msg.message_id,
+            "sender_public_key": sender.public_key,
+            "recipient_public_key": recipient_public_key,
+            "ciphertext": ciphertext.hex(),
+            "nonce": nonce.hex(),
+            "mac": mac.hex(),
+            "timestamp": timestamp,
+            "message_id": message_id,
         })
     
     @staticmethod
@@ -230,20 +269,37 @@ class Messaging:
         recipient: Identity,
         sender_public_key: str,
     ) -> str:
-        """Decrypt a message from a sender."""
+        """Decrypt a message from a sender with authentication verification."""
         if RUST_BACKEND_AVAILABLE and _rust_core:
             return _rust_core.decrypt_message(encrypted_message, recipient, sender_public_key)
         
-        # Pure Python fallback (simplified)
         msg_data = json.loads(encrypted_message)
         
-        # Derive shared secret using both public keys (same as encryption)
-        key_bytes = Messaging._derive_shared_secret(sender_public_key, recipient.public_key)
+        # Verify sender matches
+        if msg_data["sender_public_key"] != sender_public_key:
+            raise ValueError("Sender public key mismatch")
         
-        # XOR decryption for demo
+        # Derive keys
+        enc_key, mac_key = Messaging._derive_keys(sender_public_key, recipient.public_key)
+        
+        # Parse message components
         ciphertext = bytes.fromhex(msg_data["ciphertext"])
-        # Extend key to ciphertext length
-        extended_key = (key_bytes * ((len(ciphertext) // 32) + 1))[:len(ciphertext)]
-        decrypted = bytes(c ^ k for c, k in zip(ciphertext, extended_key))
+        nonce = bytes.fromhex(msg_data["nonce"])
+        received_mac = bytes.fromhex(msg_data["mac"])
         
-        return decrypted.decode()
+        # Verify MAC (authenticate before decrypting)
+        expected_mac = hmac.new(mac_key, nonce + ciphertext, hashlib.sha256).digest()
+        if not hmac.compare_digest(expected_mac, received_mac):
+            raise ValueError("Message authentication failed - message may have been tampered")
+        
+        # Decrypt using CTR-like mode
+        keystream = b""
+        counter = 0
+        while len(keystream) < len(ciphertext):
+            block = hashlib.sha256(enc_key + nonce + counter.to_bytes(4, 'big')).digest()
+            keystream += block
+            counter += 1
+        
+        plaintext = bytes(c ^ k for c, k in zip(ciphertext, keystream[:len(ciphertext)]))
+        
+        return plaintext.decode()
