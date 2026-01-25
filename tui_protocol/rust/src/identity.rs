@@ -96,6 +96,7 @@ impl UserIdentity {
         use sha2::{Sha256, Digest};
         use chacha20poly1305::{ChaCha20Poly1305, KeyInit, aead::Aead};
         use chacha20poly1305::aead::generic_array::GenericArray;
+        use rand::Rng;
         
         // Derive key from password
         let mut hasher = Sha256::new();
@@ -108,12 +109,19 @@ impl UserIdentity {
         let data = serde_json::to_string(self)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
         
-        // Encrypt
-        let nonce = GenericArray::from_slice(&[0u8; 12]); // In production, use random nonce
+        // Generate random nonce for security
+        let mut rng = rand::thread_rng();
+        let mut nonce_bytes = [0u8; 12];
+        rng.fill(&mut nonce_bytes);
+        let nonce = GenericArray::from_slice(&nonce_bytes);
+        
         let encrypted = cipher.encrypt(nonce, data.as_bytes())
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
         
-        Ok(hex::encode(encrypted))
+        // Prepend nonce to encrypted data for storage
+        let mut result = nonce_bytes.to_vec();
+        result.extend(encrypted);
+        Ok(hex::encode(result))
     }
     
     /// Import identity from encrypted backup
@@ -130,12 +138,18 @@ impl UserIdentity {
         
         let cipher = ChaCha20Poly1305::new(GenericArray::from_slice(&key_bytes));
         
-        // Decode and decrypt
-        let encrypted = hex::decode(encrypted_hex)
+        // Decode and extract nonce + ciphertext
+        let data = hex::decode(encrypted_hex)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
         
-        let nonce = GenericArray::from_slice(&[0u8; 12]);
-        let decrypted = cipher.decrypt(nonce, encrypted.as_slice())
+        if data.len() < 12 {
+            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid encrypted data"));
+        }
+        
+        let (nonce_bytes, ciphertext) = data.split_at(12);
+        let nonce = GenericArray::from_slice(nonce_bytes);
+        
+        let decrypted = cipher.decrypt(nonce, ciphertext)
             .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Decryption failed - wrong password?"))?;
         
         let json_str = String::from_utf8(decrypted)
