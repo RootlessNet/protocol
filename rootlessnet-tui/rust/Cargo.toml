@@ -1,0 +1,41 @@
+[package]
+name = "rootlessnet-core"
+version = "2.0.0"
+edition = "2021"
+description = "RootlessNet - Core blockchain protocol library in Rust"
+license = "MIT"
+authors = ["RootlessNet Community"]
+
+[lib]
+name = "rootlessnet_core"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# Cryptographic primitives
+ed25519-dalek = { version = "2.1", features = ["rand_core"] }
+x25519-dalek = { version = "2.0", features = ["static_secrets"] }
+chacha20poly1305 = "0.10"
+blake3 = "1.5"
+sha2 = "0.10"
+hkdf = "0.12"
+rand = "0.8"
+rand_core = "0.6"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bs58 = "0.5"
+hex = "0.4"
+
+# Python bindings
+pyo3 = { version = "0.20", features = ["extension-module"] }
+
+# Error handling
+thiserror = "1.0"
+
+[dev-dependencies]
+criterion = "0.5"
+
+[profile.release]
+opt-level = 3
+lto = true
