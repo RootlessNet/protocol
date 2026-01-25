@@ -43,6 +43,22 @@ pnpm-lock.yaml
 .next/
 .rootless_storage/
 
+# Rust build artifacts
+rootlessnet-tui/rust/target/
+rootlessnet-tui/rust/Cargo.lock
+
+# Python build artifacts  
+rootlessnet-tui/python/__pycache__/
+rootlessnet-tui/python/*.egg-info/
+rootlessnet-tui/python/.pytest_cache/
+rootlessnet-tui/python/.mypy_cache/
+*.pyc
+*.pyo
+*.so
+
+# Screenshots (generated)
+rootlessnet-tui/screenshot.svg
+
 # Snyk Security Extension - AI Rules (auto-generated)
 .github/instructions/snyk_rules.instructions.md
 
